@@ -1,0 +1,24 @@
+# ── 미디어 산출물 ─────────────────────────────
+# 인코딩/세그먼팅 실습 결과물은 재현 가능하므로 추적하지 않음.
+# 노트의 FFmpeg 명령어로 sample.mp4에서 다시 생성할 수 있음.
+*.mp4
+*.mkv
+*.webm
+# 주의: *.ts 는 MPEG-TS 세그먼트를 겨냥한 패턴이라 TypeScript 소스도 함께 무시됨.
+# 나중에 TS 코드를 추가하면 아래에 예외를 둘 것:  !src/**/*.ts
+*.ts
+*.m4s
+*.mp3
+*.aac
+*.wav
+
+# ── Obsidian ─────────────────────────────────
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.trash/
+
+# ── OS ───────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini

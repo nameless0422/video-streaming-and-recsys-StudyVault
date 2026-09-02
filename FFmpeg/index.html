@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>HLS Video Player Test</title>
+  <!-- hls.js 라이브러리 불러오기 (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 50px;
+    }
+    video {
+      width: 800px;
+      max-width: 90%;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    .info {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- 동영상 플레이어 -->
+  <video id="video" controls></video>
+  
+  <div class="info">
+    <p>재생중인 마스터 파일: <code>master.m3u8</code></p>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const videoSrc = 'master.m3u8';
+
+    // hls.js를 지원하는 브라우저인지 확인
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(videoSrc);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        console.log("HLS Manifest 로드 완료!");
+      });
+    } 
+    // HLS자체 지원 브라우저용 처리
+    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = videoSrc;
+    }
+  </script>
+
+</body>
+</html>
