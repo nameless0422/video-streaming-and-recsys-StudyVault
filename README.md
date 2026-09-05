@@ -34,16 +34,17 @@ created: 2026-09-02
 
 ## 🧪 실습 산출물 (`FFmpeg/`)
 
-| 파일 | 확인한 것 |
-| --- | --- |
-| `sample.mp4` | 원본 소스 |
-| `output_low.mp4` | 해상도·비트레이트 다운스케일 |
-| `output_crf18.mp4` / `output_crf32.mp4` | CRF 값에 따른 화질·용량 차이 (1.73MB ↔ 0.67MB) |
-| `output_gop60.mp4` | `-g 60` → 2초 간격 키프레임 (`ffprobe`로 검증) |
-| `index.m3u8` + `segment_00*.ts` | 단일 비트레이트 HLS 세그먼팅 |
-| `master.m3u8` + `v0/` `v1/` `v2/` | ABR 3트랙 패키징 (1080p / 720p / 480p) |
-| `index.html` | `hls.js` 기반 웹 플레이어 (`master.m3u8` 재생) |
-| `thumbnail.jpg` | 특정 시점 프레임 추출 |
+| 파일                                      | 확인한 것                                 |
+| --------------------------------------- | ------------------------------------- |
+| `sample.mp4`                            | 원본 소스                                 |
+| `output_low.mp4`                        | 해상도·비트레이트 다운스케일                       |
+| `output_crf18.mp4` / `output_crf32.mp4` | CRF 값에 따른 화질·용량 차이 (1.73MB ↔ 0.67MB)  |
+| `output_gop60.mp4`                      | `-g 60` → 2초 간격 키프레임 (`ffprobe`로 검증)  |
+| `index.m3u8` + `segment_00*.ts`         | 단일 비트레이트 HLS 세그먼팅                     |
+| `master.m3u8` + `v0/` `v1/` `v2/`       | ABR 3트랙 패키징 (1080p / 720p / 480p)     |
+| `index.html`                            | `hls.js` 기반 웹 플레이어 (`master.m3u8` 재생) |
+| `thumbnail.jpg`                         | 특정 시점 프레임 추출                          |
+
 
 > [!warning] 미디어 파일은 Git에 포함되지 않음
 > `.mp4` · `.ts`는 `.gitignore` 대상이라 저장소에는 **플레이리스트(`.m3u8`) · 플레이어(`.html`) · 썸네일만** 올라간다.
@@ -65,8 +66,9 @@ created: 2026-09-02
 - [x] **프로토콜 및 가변 비트레이트 (ABR)**
   - [x] HLS (HTTP Live Streaming) 구조 파악 (`.m3u8` 파일 및 `.ts` 세그먼트)
   - [x] FFmpeg로 단일 `.mp4` 영상을 다중 비트레이트 HLS 세그먼트로 변환
-- [ ] **웹 플레이어 연동 및 보안**
+- [x] **웹 플레이어 연동 및 보안** 
   - [x] HTML5 + `hls.js` 기반 웹 미디어 플레이어 구현
+  - [x] 이벤트 수집 기초 [[웹 플레이어 연동 및 이벤트 수집]]
   - [ ] 시청 시간, 완독률, 클릭 이벤트를 백엔드로 전송하는 이벤트 핸들러 작성
 - [ ] **스트리밍 백엔드 & 비동기 파이프라인**
   - [ ] Python 백엔드(FastAPI 등) 기반 비동기 작업 큐(Redis/Celery) 구축

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>HLS Video Player Test</title>
+  <!-- hls.js 라이브러리 불러오기 (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 50px;
+    }
+    video {
+      width: 800px;
+      max-width: 90%;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    .info {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- 동영상 플레이어 -->
+  <video id="video" controls></video>
+  
+  <!-- 화질 선택 드롭다운 -->
+<div class="info" style="margin-top: 10px;">
+    <label for="qualitySelect">⚙️ 화질 선택: </label>
+    <select id="qualitySelect" style="background: #222; color: #fff; padding: 5px; border-radius: 4px;">
+      <option value="-1">자동 (Auto ABR)</option>
+    </select>
+  </div>
+
+  <div class="info">
+    <p>재생중인 마스터 파일: <code>master.m3u8</code></p>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const qualitySelect = document.getElementById('qualitySelect');
+    const videoSrc = 'master.m3u8';
+
+    // 시청 행동 데이터를 담을 객체
+    let watchLog = {
+      videoId: 'sample_video_01',
+      userId: 'user_dev_01',
+      lastPosition: 0,
+      totalWatchedTime: 0,
+      isCompleted: false,
+      currentQuality: 'Auto'
+    };
+
+    let lastCheckTime = 0;
+
+    // 백엔드로 로그 전송
+    async function sendWatchLog() {
+      try {
+        await fetch('http://localhost:8000/api/watch-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(watchLog)
+        });
+      } catch (error) {
+        console.error('[Error] 로그 전송 실패:', error);
+      }
+    }
+
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(videoSrc);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        console.log("[System] HLS Manifest 로드 완료");
+
+        // master.m3u8의 화질 목록을 드롭다운 옵션으로 추가
+        hls.levels.forEach((level, index) => {
+          const option = document.createElement('option');
+          option.value = index;
+          option.text = `${level.height}p (${Math.round(level.bitrate / 1000)}kbps)`;
+          qualitySelect.appendChild(option);
+        });
+      });
+
+      // 드롭다운에서 화질 선택 시 해당 화질로 고정/자동 설정 변경
+      qualitySelect.addEventListener('change', (event) => {
+        const levelIndex = parseInt(event.target.value);
+        hls.currentLevel = levelIndex;
+        console.log(`[User Control] 화질 변경 요청 -> ${levelIndex === -1 ? 'Auto' : hls.levels[levelIndex].height + 'p'}`);
+      });
+
+      // 1. 화질 전환 이벤트 감지 (ABR 로그)
+      hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
+        const levelInfo = hls.levels[data.level];
+        watchLog.currentQuality = `${levelInfo.height}p (${Math.round(levelInfo.bitrate / 1000)}kbps)`;
+        console.log(`[Event: Quality Switch] 화질 변환 됨 -> ${watchLog.currentQuality}`);
+      });
+
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = videoSrc;
+    }
+
+    // 2. 재생 중 주기적 시청 시간 및 위치 수집 (Heartbeat)
+    video.addEventListener('timeupdate', () => {
+      const currentTime = video.currentTime;
+      
+      // 5초 간격으로 로그 출력 (실제 운영 시 5초마다 백엔드로 전송)
+      if (Math.floor(currentTime) % 5 === 0 && Math.floor(currentTime) !== lastCheckTime) {
+        lastCheckTime = Math.floor(currentTime);
+        watchLog.lastPosition = Number(currentTime.toFixed(2));
+        console.log(`[Event: Heartbeat] 재생 위치: ${watchLog.lastPosition}초 | 현재 화질: ${watchLog.currentQuality}`);
+        
+        sendWatchLog(); // 서버로 로그 전송
+      }
+    });
+
+    // 3. 완독(Ended) 이벤트 감지
+    video.addEventListener('ended', () => {
+      watchLog.isCompleted = true;
+      console.log("%c[Event: Completed] 영상 완독 달성!", "color: #00ff00; font-weight: bold;");
+      console.log("[Final Watch Log]", watchLog);
+
+      sendWatchLog(); // 서버로 완독 로그 전송
+    });
+</script>
+
+</body>
+</html>
